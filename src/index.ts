@@ -1,5 +1,6 @@
 import express from "express";
 import router from "./routes/api";
+import docsSetup from "./docs/route";
 import dotenv from "dotenv";
 import bodyParser from "body-parser";
 import db from "./utils/database";
@@ -29,6 +30,7 @@ async function init() {
     });
 
     app.use("/api/v1", router);
+    docsSetup(app);
 
     app.listen(PORT, () => {
       console.log(`Server is running on http://localhost:${PORT}`);

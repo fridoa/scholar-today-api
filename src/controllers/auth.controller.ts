@@ -7,6 +7,18 @@ import jsonPlaceholderService from "../services/jsonplaceholder.service";
 export default {
   // Register
   async register(req: Request, res: Response) {
+    /*
+        #swagger.summary = 'User Registration'
+        #swagger.tags = ['Auth']
+        #swagger.requestBody = {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/Register" }
+            }
+          }
+        }
+    */
     try {
       const user = await authService.registerUser(req.body as TRegister);
 
@@ -25,6 +37,18 @@ export default {
 
   // Login
   async login(req: Request, res: Response) {
+    /*
+        #swagger.summary = 'User Login'
+        #swagger.tags = ['Auth']
+        #swagger.requestBody = {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/Login" }
+            }
+          }
+        }
+    */
     try {
       const token = await authService.loginUser(req.body);
 
@@ -43,6 +67,11 @@ export default {
 
   // Get User Profile
   async getUserProfile(req: IAuthRequest, res: Response) {
+    /*
+        #swagger.summary = 'Get User Profile (from JSONPlaceholder)'
+        #swagger.tags = ['Auth']
+        #swagger.description = 'Fetches the user profile from JSONPlaceholder based on the email encoded in the JWT.'
+    */
     const email = req.user?.email;
     if (!email) {
       return res.status(401).json({
