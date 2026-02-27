@@ -7,4 +7,5 @@ export const env = {
     JWT_SECRET_KEY: process.env.JWT_SECRET_KEY || "",
     JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "1d",
     JSON_PLACEHOLDER_URL: process.env.JSON_PLACEHOLDER_URL || "",
+    ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS || "",
 }

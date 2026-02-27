@@ -6,6 +6,7 @@ import bodyParser from "body-parser";
 import db from "./utils/database";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import { env } from "./utils/env";
 
 dotenv.config();
 
@@ -17,9 +18,19 @@ async function init() {
 
     const app = express();
 
+    const allowedOrigins = env.ALLOWED_ORIGINS?.split(",") || [];
+
     app.use(cors({
-      origin: "http://localhost:5173",
+      origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error("Not allowed by CORS"));
+        }
+      },
       credentials: true,
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization"],
     }));
 
     app.use(cookieParser());
