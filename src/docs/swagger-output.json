@@ -441,7 +441,7 @@
           },
           "password": {
             "type": "string",
-            "example": "password123"
+            "example": "12341234"
           }
         }
       },
