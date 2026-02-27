@@ -57,7 +57,6 @@ const doc = {
       }
     }
   },
-  // Default security ter-apply ke seluruh endpoint, kecuali yang dideklarasikan overwrite `security: []` di controller
   security: [
     {
       bearerAuth: [],
@@ -65,8 +64,8 @@ const doc = {
   ],
 };
 
-const outputFile = "./swagger-output.json"; // Output di root dirname /src/docs
-const endpointsFiles = ["../routes/api.ts"]; // Target file router utama
+const outputFile = "./swagger-output.json";
+const endpointsFiles = ["../routes/api.ts"];
 
 swaggerAutogen({ openapi: "3.0.0" })(outputFile, endpointsFiles, doc).then(() => {
     console.log("Swagger documentation generated successfully!");
