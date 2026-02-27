@@ -52,6 +52,13 @@ export default {
     try {
       const token = await authService.loginUser(req.body);
 
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 24 * 60 * 60 * 1000,
+      });
+
       res.status(200).json({
         message: "Login Berhasil",
         data: token,
@@ -101,5 +108,23 @@ export default {
         data: null,
       });
     }
+  },
+
+  // Logout
+  async logout(req: Request, res: Response) {
+    /*
+        #swagger.summary = 'User Logout'
+        #swagger.tags = ['Auth']
+    */
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
+
+    res.status(200).json({
+      message: "Logout Berhasil",
+      data: null,
+    });
   },
 };

@@ -32,15 +32,20 @@ const validateLogin = async (req: Request, res: Response, next: NextFunction) =>
 };
 
 const authorization = async (req: IAuthRequest, res: Response, next: NextFunction) => {
-  const authHeader = req.headers?.authorization;
+  let token = req.cookies?.token;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  if (!token) {
+    const authHeader = req.headers?.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      token = authHeader.substring(7);
+    }
+  }
+
+  if (!token) {
     return res.status(401).json({
       message: "Access token required",
     });
   }
-
-  const token = authHeader.substring(7);
 
   const userData = getUserData(token);
 
