@@ -14,6 +14,10 @@ const doc = {
       url: `http://localhost:${process.env.PORT || 8000}/api/v1`,
       description: "Local Development Server",
     },
+    {
+      url: "https://scholar-today-api.vercel.app/api/v1",
+      description: "Production Server",
+    },
   ],
   components: {
     securitySchemes: {
