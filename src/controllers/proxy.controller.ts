@@ -9,8 +9,20 @@ export default {
         #swagger.tags = ['Posts']
     */
     try {
-      const posts = await jsonPlaceholderService.getAllPosts();
-      res.status(200).json({ message: "Data posts berhasil diambil", data: posts });
+      const queryString = new URLSearchParams(req.query as any).toString();
+      const result = await jsonPlaceholderService.getAllPosts(queryString);
+
+      if (result && typeof result.totalCount === 'number') {
+        res.status(200).json({ 
+          message: "Data posts berhasil diambil", 
+          data: result.data,
+          pagination: {
+            totalData: result.totalCount
+          }
+        });
+      } else {
+        res.status(200).json({ message: "Data posts berhasil diambil", data: result });
+      }
     } catch (error) {
       const err = error as Error;
       res.status(500).json({ message: err.message, data: null });
