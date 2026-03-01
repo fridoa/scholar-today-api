@@ -40,19 +40,32 @@ export default {
 
   async getAll(req: Request, res: Response) {
     /*
-        #swagger.summary = 'Get All Posts (Merged)'
+        #swagger.summary = 'Get All Posts (Merged with Unified Pagination)'
         #swagger.tags = ['Posts']
     */
     try {
-      const queryString = new URLSearchParams(req.query as any).toString();
+      const page = parseInt(req.query._page as string) || 1;
+      const limit = parseInt(req.query._limit as string) || 10;
+      const start = (page - 1) * limit;
 
-      // Fetch from both sources in parallel
-      const [jpResult, dbPosts] = await Promise.all([jsonPlaceholderService.getAllPosts(queryString), PostModel.find().sort({ createdAt: -1 }).lean()]);
+      const [dbCount, jpCountResult] = await Promise.all([
+        PostModel.countDocuments(),
+        jsonPlaceholderService.getPostsPaginated(0, 1), // just to get totalCount header
+      ]);
 
-      // Normalize JSONPlaceholder posts
-      const jpPosts = (jpResult && typeof jpResult.totalCount === "number" ? jpResult.data : jpResult) as any[];
+      const jpTotalCount = jpCountResult.totalCount;
+      const totalData = dbCount + jpTotalCount;
 
-      // Normalize DB posts to match JSONPlaceholder shape
+      const dbSkip = Math.min(start, dbCount);
+      const dbTake = Math.max(0, Math.min(limit, dbCount - start));
+      const jpNeeded = limit - dbTake;
+      const jpStart = Math.max(0, start - dbCount);
+
+      const [dbPosts, jpResult] = await Promise.all([
+        dbTake > 0 ? PostModel.find().sort({ createdAt: -1 }).skip(dbSkip).limit(dbTake).lean() : Promise.resolve([]),
+        jpNeeded > 0 ? jsonPlaceholderService.getPostsPaginated(jpStart, jpNeeded) : Promise.resolve({ data: [], totalCount: jpTotalCount }),
+      ]);
+
       const normalizedDbPosts = dbPosts.map((post) => ({
         userId: post.userId,
         id: `local-${post._id}`,
@@ -64,16 +77,13 @@ export default {
         isLocal: true,
       }));
 
-      // DB posts first (newest), then JSONPlaceholder
-      const merged = [...normalizedDbPosts, ...jpPosts];
-
-      const totalCount = jpResult && typeof jpResult.totalCount === "number" ? jpResult.totalCount + dbPosts.length : merged.length;
+      const data = [...normalizedDbPosts, ...(jpResult.data as any[])];
 
       res.status(200).json({
         message: "Data posts berhasil diambil",
-        data: merged,
+        data,
         pagination: {
-          totalData: totalCount,
+          totalData,
         },
       });
     } catch (error) {
@@ -134,12 +144,11 @@ export default {
         return res.status(404).json({ message: "Post not found", data: null });
       }
 
-      // Remove image from ImageKit if exists
       if (post.imageFileId) {
         try {
           await imageKitUtil.removeFile(post.imageFileId);
-        } catch {
-          // Continue even if image deletion fails
+        } catch (err) {
+          console.error("Failed to remove image from ImageKit:", err);
         }
       }
 
