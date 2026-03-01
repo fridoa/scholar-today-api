@@ -18,7 +18,7 @@ router.post("/posts", authMiddleware.authorization, postController.create);
 router.delete("/posts/:id", authMiddleware.authorization, postController.delete);
 
 router.get("/posts/:id", authMiddleware.authorization, proxyController.getPostById);
-router.get("/users/:userId/posts", authMiddleware.authorization, proxyController.getPostsByUserId);
+router.get("/users/:userId/posts", authMiddleware.authorization, postController.getByUserId);
 router.get("/posts/:postId/comments", authMiddleware.authorization, proxyController.getCommentsByPostId);
 
 router.post("/media/upload", authMiddleware.authorization, upload.single("image"), mediaController.upload);

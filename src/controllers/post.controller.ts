@@ -82,6 +82,44 @@ export default {
     }
   },
 
+  async getByUserId(req: Request, res: Response) {
+    /*
+        #swagger.summary = 'Get Posts by User ID (Merged)'
+        #swagger.tags = ['Posts', 'Users']
+    */
+    try {
+      const userId = req.params.userId as string;
+
+      const [jpPosts, dbPosts] = await Promise.all([
+        jsonPlaceholderService.getPostsByUserId(userId),
+        PostModel.find({ userId: Number(userId) })
+          .sort({ createdAt: -1 })
+          .lean(),
+      ]);
+
+      const normalizedDbPosts = dbPosts.map((post) => ({
+        userId: post.userId,
+        id: `local-${post._id}`,
+        title: post.title,
+        body: post.body,
+        image: post.image || null,
+        imageFileId: post.imageFileId || null,
+        createdAt: post.createdAt,
+        isLocal: true,
+      }));
+
+      const merged = [...normalizedDbPosts, ...(jpPosts as any[])];
+
+      res.status(200).json({
+        message: "Data posts berhasil diambil",
+        data: merged,
+      });
+    } catch (error) {
+      const err = error as Error;
+      res.status(500).json({ message: err.message, data: null });
+    }
+  },
+
   async delete(req: IAuthRequest, res: Response) {
     /*
         #swagger.summary = 'Delete Post'
