@@ -17,7 +17,7 @@ router.get("/posts", authMiddleware.authorization, postController.getAll);
 router.post("/posts", authMiddleware.authorization, postController.create);
 router.delete("/posts/:id", authMiddleware.authorization, postController.delete);
 
-router.get("/posts/:id", authMiddleware.authorization, proxyController.getPostById);
+router.get("/posts/:id", authMiddleware.authorization, postController.getById);
 router.get("/users/:userId/posts", authMiddleware.authorization, postController.getByUserId);
 router.get("/posts/:postId/comments", authMiddleware.authorization, proxyController.getCommentsByPostId);
 

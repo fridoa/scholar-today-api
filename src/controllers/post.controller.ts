@@ -130,6 +130,45 @@ export default {
     }
   },
 
+  async getById(req: Request, res: Response) {
+    /*
+        #swagger.summary = 'Get Post by ID (Local or JSONPlaceholder)'
+        #swagger.tags = ['Posts']
+    */
+    try {
+      const { id } = req.params;
+
+      if (typeof id === "string" && id.startsWith("local-")) {
+        const mongoId = id.replace("local-", "");
+        const dbPost = await PostModel.findById(mongoId).lean();
+
+        if (!dbPost) {
+          return res.status(404).json({ message: "Post not found", data: null });
+        }
+
+        return res.status(200).json({
+          message: "Data post berhasil diambil",
+          data: {
+            userId: dbPost.userId,
+            id: `local-${dbPost._id}`,
+            title: dbPost.title,
+            body: dbPost.body,
+            image: dbPost.image || null,
+            imageFileId: dbPost.imageFileId || null,
+            createdAt: dbPost.createdAt,
+            isLocal: true,
+          },
+        });
+      }
+
+      const post = await jsonPlaceholderService.getPostById(id as string);
+      res.status(200).json({ message: "Data post berhasil diambil", data: post });
+    } catch (error) {
+      const err = error as Error;
+      res.status(500).json({ message: err.message, data: null });
+    }
+  },
+
   async delete(req: IAuthRequest, res: Response) {
     /*
         #swagger.summary = 'Delete Post'
