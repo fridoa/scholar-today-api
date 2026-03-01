@@ -3,6 +3,7 @@ import authMiddleware from "../middlewares/auth.middleware";
 import authController from "../controllers/auth.controller";
 import proxyController from "../controllers/proxy.controller";
 import postController from "../controllers/post.controller";
+import likeController from "../controllers/like.controller";
 import mediaController from "../controllers/media.controller";
 import upload from "../middlewares/upload.middleware";
 
@@ -20,6 +21,10 @@ router.delete("/posts/:id", authMiddleware.authorization, postController.delete)
 router.get("/posts/:id", authMiddleware.authorization, postController.getById);
 router.get("/users/:userId/posts", authMiddleware.authorization, postController.getByUserId);
 router.get("/posts/:postId/comments", authMiddleware.authorization, proxyController.getCommentsByPostId);
+
+router.post("/posts/:id/like", authMiddleware.authorization, likeController.toggle);
+router.get("/posts/:id/like", authMiddleware.authorization, likeController.getStatus);
+router.post("/posts/likes/batch", authMiddleware.authorization, likeController.getBatchCounts);
 
 router.post("/media/upload", authMiddleware.authorization, upload.single("image"), mediaController.upload);
 router.delete("/media/:fileId", authMiddleware.authorization, mediaController.remove);
