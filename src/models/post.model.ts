@@ -35,7 +35,7 @@ const PostSchema = new Schema<IPost>(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 const PostModel = mongoose.model<IPost>("Post", PostSchema);

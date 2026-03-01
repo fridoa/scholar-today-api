@@ -47,15 +47,10 @@ export default {
       const queryString = new URLSearchParams(req.query as any).toString();
 
       // Fetch from both sources in parallel
-      const [jpResult, dbPosts] = await Promise.all([
-        jsonPlaceholderService.getAllPosts(queryString),
-        PostModel.find().sort({ createdAt: -1 }).lean(),
-      ]);
+      const [jpResult, dbPosts] = await Promise.all([jsonPlaceholderService.getAllPosts(queryString), PostModel.find().sort({ createdAt: -1 }).lean()]);
 
       // Normalize JSONPlaceholder posts
-      const jpPosts = (jpResult && typeof jpResult.totalCount === "number"
-        ? jpResult.data
-        : jpResult) as any[];
+      const jpPosts = (jpResult && typeof jpResult.totalCount === "number" ? jpResult.data : jpResult) as any[];
 
       // Normalize DB posts to match JSONPlaceholder shape
       const normalizedDbPosts = dbPosts.map((post) => ({
@@ -72,10 +67,7 @@ export default {
       // DB posts first (newest), then JSONPlaceholder
       const merged = [...normalizedDbPosts, ...jpPosts];
 
-      const totalCount =
-        jpResult && typeof jpResult.totalCount === "number"
-          ? jpResult.totalCount + dbPosts.length
-          : merged.length;
+      const totalCount = jpResult && typeof jpResult.totalCount === "number" ? jpResult.totalCount + dbPosts.length : merged.length;
 
       res.status(200).json({
         message: "Data posts berhasil diambil",

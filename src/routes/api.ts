@@ -13,7 +13,6 @@ router.post("/auth/login", authMiddleware.validateLogin, authController.login);
 router.post("/auth/logout", authController.logout);
 router.get("/auth/profile", authMiddleware.authorization, authController.getUserProfile);
 
-
 router.get("/posts", authMiddleware.authorization, postController.getAll);
 router.post("/posts", authMiddleware.authorization, postController.create);
 router.delete("/posts/:id", authMiddleware.authorization, postController.delete);
@@ -27,7 +26,6 @@ router.delete("/media/:fileId", authMiddleware.authorization, mediaController.re
 
 router.get("/users", authMiddleware.authorization, proxyController.getAllUsers);
 router.get("/users/:id", authMiddleware.authorization, proxyController.getUserById);
-
 
 router.get("/users/:userId/albums", authMiddleware.authorization, proxyController.getAlbumsByUserId);
 router.get("/albums/:albumId/photos", authMiddleware.authorization, proxyController.getPhotosByAlbumId);
