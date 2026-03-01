@@ -4,6 +4,7 @@ import authController from "../controllers/auth.controller";
 import proxyController from "../controllers/proxy.controller";
 import postController from "../controllers/post.controller";
 import likeController from "../controllers/like.controller";
+import bookmarkController from "../controllers/bookmark.controller";
 import mediaController from "../controllers/media.controller";
 import upload from "../middlewares/upload.middleware";
 
@@ -25,6 +26,9 @@ router.get("/posts/:postId/comments", authMiddleware.authorization, proxyControl
 router.post("/posts/:id/like", authMiddleware.authorization, likeController.toggle);
 router.get("/posts/:id/like", authMiddleware.authorization, likeController.getStatus);
 router.post("/posts/likes/batch", authMiddleware.authorization, likeController.getBatchCounts);
+
+router.post("/posts/:id/bookmark", authMiddleware.authorization, bookmarkController.toggle);
+router.get("/posts/:id/bookmark", authMiddleware.authorization, bookmarkController.getStatus);
 
 router.post("/media/upload", authMiddleware.authorization, upload.single("image"), mediaController.upload);
 router.delete("/media/:fileId", authMiddleware.authorization, mediaController.remove);
