@@ -37,6 +37,7 @@ const getPostsByUserId = (userId: string) => fetchFromJsonPlaceholder(`/users/${
 const getCommentsByPostId = (postId: string) => fetchFromJsonPlaceholder(`/posts/${postId}/comments`);
 
 // Users
+const getAllUsers = () => fetchFromJsonPlaceholder("/users");
 const getUserById = (id: string) => fetchFromJsonPlaceholder(`/users/${id}`);
 const getUserByEmail = async (email: string) => {
   const users = await fetchFromJsonPlaceholder(`/users?email=${encodeURIComponent(email)}`);
@@ -55,6 +56,7 @@ export default {
   getPostById,
   getPostsByUserId,
   getCommentsByPostId,
+  getAllUsers,
   getUserById,
   getUserByEmail,
   getAlbumsByUserId,

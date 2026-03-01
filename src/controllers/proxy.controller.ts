@@ -73,6 +73,20 @@ export default {
   },
 
   // Users
+  async getAllUsers(req: Request, res: Response) {
+    /*
+        #swagger.summary = 'Get All Users'
+        #swagger.tags = ['Users']
+    */
+    try {
+      const users = await jsonPlaceholderService.getAllUsers();
+      res.status(200).json({ message: "Data users berhasil diambil", data: users });
+    } catch (error) {
+      const err = error as Error;
+      res.status(500).json({ message: err.message, data: null });
+    }
+  },
+
   async getUserById(req: Request, res: Response) {
     /*
         #swagger.summary = 'Get User by ID'
