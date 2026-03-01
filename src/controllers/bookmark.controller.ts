@@ -62,4 +62,37 @@ export default {
       res.status(500).json({ message: err.message, data: null });
     }
   },
+
+  async getBatchStatus(req: IAuthRequest, res: Response) {
+    /*
+        #swagger.summary = 'Get Bookmark Status for Multiple Posts'
+        #swagger.tags = ['Bookmarks']
+    */
+    try {
+      const { postIds, userId } = req.body as { postIds: string[]; userId: number };
+
+      if (!postIds || !Array.isArray(postIds) || !userId) {
+        return res.status(400).json({ message: "postIds array and userId are required", data: null });
+      }
+
+      const userBookmarks = await BookmarkModel.find({ userId, postId: { $in: postIds } })
+        .select("postId")
+        .lean();
+
+      const bookmarkedSet = new Set(userBookmarks.map((b) => b.postId));
+
+      const result: Record<string, { bookmarked: boolean }> = {};
+      for (const id of postIds) {
+        result[id] = { bookmarked: bookmarkedSet.has(id) };
+      }
+
+      res.status(200).json({
+        message: "Batch bookmark data retrieved",
+        data: result,
+      });
+    } catch (error) {
+      const err = error as Error;
+      res.status(500).json({ message: err.message, data: null });
+    }
+  },
 };

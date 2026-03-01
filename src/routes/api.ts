@@ -29,6 +29,7 @@ router.post("/posts/likes/batch", authMiddleware.authorization, likeController.g
 
 router.post("/posts/:id/bookmark", authMiddleware.authorization, bookmarkController.toggle);
 router.get("/posts/:id/bookmark", authMiddleware.authorization, bookmarkController.getStatus);
+router.post("/posts/bookmarks/batch", authMiddleware.authorization, bookmarkController.getBatchStatus);
 
 router.post("/media/upload", authMiddleware.authorization, upload.single("image"), mediaController.upload);
 router.delete("/media/:fileId", authMiddleware.authorization, mediaController.remove);
