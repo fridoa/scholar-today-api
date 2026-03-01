@@ -1,7 +1,27 @@
 import { Response } from "express";
 import { IAuthRequest } from "../types/auth.type";
 import LikeModel from "../models/like.model";
+import PostModel from "../models/post.model";
+import NotificationModel from "../models/notification.model";
 import jsonPlaceholderService from "../services/jsonplaceholder.service";
+
+/**
+ * Resolve the owner (userId) of a post.
+ * Local posts → MongoDB, JP posts → JSONPlaceholder API.
+ */
+async function getPostOwner(postId: string): Promise<number | null> {
+  try {
+    if (postId.startsWith("local-")) {
+      const mongoId = postId.replace("local-", "");
+      const post = await PostModel.findById(mongoId).select("userId").lean();
+      return post?.userId ?? null;
+    }
+    const post = await jsonPlaceholderService.getPostById(postId);
+    return (post as any)?.userId ?? null;
+  } catch {
+    return null;
+  }
+}
 
 export default {
   async toggle(req: IAuthRequest, res: Response) {
@@ -30,6 +50,18 @@ export default {
 
       await LikeModel.create({ userId, postId });
       const count = await LikeModel.countDocuments({ postId });
+
+      getPostOwner(postId).then((ownerId) => {
+        if (ownerId && ownerId !== userId) {
+          NotificationModel.create({
+            userId: ownerId,
+            fromUserId: userId,
+            type: "like",
+            postId,
+            message: "liked your post",
+          }).catch(() => {});
+        }
+      });
 
       res.status(201).json({
         message: "Post liked",
