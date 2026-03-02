@@ -32,9 +32,9 @@ export default {
     }
   },
 
-  async getStatus(req: IAuthRequest, res: Response) {
+  async getInfo(req: IAuthRequest, res: Response) {
     /*
-        #swagger.summary = 'Get Follow Status for a User'
+        #swagger.summary = 'Get Follow Info (status + counts) for a User'
         #swagger.tags = ['Follows']
     */
     try {
@@ -45,10 +45,10 @@ export default {
         return res.status(400).json({ message: "userId query param is required", data: null });
       }
 
-      const result = await followService.getStatus(followerId, followingId);
+      const result = await followService.getInfo(followerId, followingId);
 
       res.status(200).json({
-        message: "Follow status retrieved",
+        message: "Follow info retrieved",
         data: result,
       });
     } catch (error) {
@@ -57,18 +57,26 @@ export default {
     }
   },
 
-  async getCounts(req: IAuthRequest, res: Response) {
+  async getBatch(req: IAuthRequest, res: Response) {
     /*
-        #swagger.summary = 'Get Follow Counts for a User'
+        #swagger.summary = 'Get Follow Info for Multiple Users'
         #swagger.tags = ['Follows']
     */
     try {
-      const userId = parseInt(req.params.id as string);
+      const { userIds, userId } = req.body as { userIds: number[]; userId: number };
 
-      const result = await followService.getCounts(userId);
+      if (!userIds || !Array.isArray(userIds)) {
+        return res.status(400).json({ message: "userIds array is required", data: null });
+      }
+
+      if (!userId) {
+        return res.status(400).json({ message: "userId is required", data: null });
+      }
+
+      const result = await followService.getBatch(userIds, userId);
 
       res.status(200).json({
-        message: "Follow counts retrieved",
+        message: "Batch follow info retrieved",
         data: result,
       });
     } catch (error) {

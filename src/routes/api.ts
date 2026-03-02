@@ -38,9 +38,9 @@ router.get("/users/:userId/notifications", authMiddleware.authorization, notific
 router.put("/notifications/:id/read", authMiddleware.authorization, notificationController.markAsRead);
 router.put("/users/:userId/notifications/read-all", authMiddleware.authorization, notificationController.markAllRead);
 
+router.post("/users/follow/batch", authMiddleware.authorization, followController.getBatch);
 router.post("/users/:id/follow", authMiddleware.authorization, followController.toggle);
-router.get("/users/:id/follow", authMiddleware.authorization, followController.getStatus);
-router.get("/users/:id/follow/counts", authMiddleware.authorization, followController.getCounts);
+router.get("/users/:id/follow", authMiddleware.authorization, followController.getInfo);
 
 router.post("/media/upload", authMiddleware.authorization, upload.single("image"), mediaController.upload);
 router.delete("/media/:fileId", authMiddleware.authorization, mediaController.remove);
