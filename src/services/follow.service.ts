@@ -23,8 +23,8 @@ const followService = {
   },
 
   async getStatus(followerId: number, followingId: number) {
-    const exists = await FollowModel.exists({ followerId, followingId });
-    return { followed: !!exists };
+    const [exists, reverse] = await Promise.all([FollowModel.exists({ followerId, followingId }), FollowModel.exists({ followerId: followingId, followingId: followerId })]);
+    return { followed: !!exists, followsYou: !!reverse };
   },
 
   async getCounts(userId: number) {
