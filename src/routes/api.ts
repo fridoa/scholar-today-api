@@ -5,6 +5,7 @@ import proxyController from "../controllers/proxy.controller";
 import postController from "../controllers/post.controller";
 import likeController from "../controllers/like.controller";
 import bookmarkController from "../controllers/bookmark.controller";
+import followController from "../controllers/follow.controller";
 import notificationController from "../controllers/notification.controller";
 import mediaController from "../controllers/media.controller";
 import upload from "../middlewares/upload.middleware";
@@ -36,6 +37,10 @@ router.get("/users/:userId/bookmarks", authMiddleware.authorization, bookmarkCon
 router.get("/users/:userId/notifications", authMiddleware.authorization, notificationController.getByUser);
 router.put("/notifications/:id/read", authMiddleware.authorization, notificationController.markAsRead);
 router.put("/users/:userId/notifications/read-all", authMiddleware.authorization, notificationController.markAllRead);
+
+router.post("/users/:id/follow", authMiddleware.authorization, followController.toggle);
+router.get("/users/:id/follow", authMiddleware.authorization, followController.getStatus);
+router.get("/users/:id/follow/counts", authMiddleware.authorization, followController.getCounts);
 
 router.post("/media/upload", authMiddleware.authorization, upload.single("image"), mediaController.upload);
 router.delete("/media/:fileId", authMiddleware.authorization, mediaController.remove);
