@@ -3,7 +3,7 @@ import NotificationModel from "../models/notification.model";
 
 export interface IFollowInfo {
   followed: boolean;
-  isPending: boolean;
+  isFriend: boolean;
   followsYou: boolean;
   followersCount: number;
   followingCount: number;
@@ -22,35 +22,37 @@ const followService = {
 
     if (existing) {
       await FollowModel.deleteOne({ followerId, followingId });
-      return { followed: false, isPending: false };
+      return { followed: false };
     }
 
-    await FollowModel.create({ followerId, followingId, status: "pending" });
+    await FollowModel.create({ followerId, followingId, status: "accepted" });
 
     NotificationModel.create({
       userId: followingId,
       fromUserId: followerId,
       type: "follow",
-      message: "sent you a follow request",
+      message: "started following you",
     }).catch(() => {});
 
-    return { followed: false, isPending: true };
+    return { followed: true };
   },
 
   async getInfo(followerId: number, followingId: number): Promise<IFollowInfo> {
     const isSelf = followerId === followingId;
 
     const [followDoc, reverse, followersCount, followingCount] = await Promise.all([
-      isSelf ? null : FollowModel.findOne({ followerId, followingId }).select("status").lean(),
+      isSelf ? null : FollowModel.findOne({ followerId, followingId, ...acceptedFilter }).lean(),
       isSelf ? null : FollowModel.exists({ followerId: followingId, followingId: followerId, ...acceptedFilter }),
       FollowModel.countDocuments({ followingId, ...acceptedFilter }),
       FollowModel.countDocuments({ followerId: followingId, ...acceptedFilter }),
     ]);
 
+    const followed = followDoc != null;
+    const followsYou = !!reverse;
     return {
-      followed: followDoc != null && followDoc.status !== "pending",
-      isPending: followDoc?.status === "pending",
-      followsYou: !!reverse,
+      followed,
+      isFriend: followed && followsYou,
+      followsYou,
       followersCount,
       followingCount,
     };
@@ -76,7 +78,6 @@ const followService = {
     ]);
 
     const followedSet = new Set(followsByMe.filter((f) => f.status !== "pending").map((f) => f.followingId));
-    const pendingSet = new Set(followsByMe.filter((f) => f.status === "pending").map((f) => f.followingId));
     const followsYouSet = new Set(followsMe.map((f) => f.followerId));
 
     const followersMap = new Map<number, number>();
@@ -91,7 +92,7 @@ const followService = {
     for (const id of userIds) {
       result[id] = {
         followed: followedSet.has(id),
-        isPending: pendingSet.has(id),
+        isFriend: followedSet.has(id) && followsYouSet.has(id),
         followsYou: followsYouSet.has(id),
         followersCount: followersMap.get(id) ?? 0,
         followingCount: followingMap.get(id) ?? 0,
