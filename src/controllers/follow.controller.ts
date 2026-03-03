@@ -100,6 +100,30 @@ export default {
     }
   },
 
+  async getFriends(req: IAuthRequest, res: Response) {
+    /*
+        #swagger.summary = 'Get Mutual Follows (Friends) for a User'
+        #swagger.tags = ['Follows']
+    */
+    try {
+      const userId = parseInt(req.params.userId as string);
+
+      if (!userId) {
+        return res.status(400).json({ message: "userId is required", data: null });
+      }
+
+      const friendIds = await followService.getFriends(userId);
+
+      res.status(200).json({
+        message: "Friends retrieved",
+        data: friendIds,
+      });
+    } catch (error) {
+      const err = error as Error;
+      res.status(500).json({ message: err.message, data: null });
+    }
+  },
+
   async getInfo(req: IAuthRequest, res: Response) {
     /*
         #swagger.summary = 'Get Follow Info (status + counts) for a User'

@@ -44,6 +44,7 @@ router.get("/users/:id/follow", authMiddleware.authorization, followController.g
 router.get("/users/:userId/follow-requests", authMiddleware.authorization, followController.getPendingRequests);
 router.post("/follow-requests/:fromUserId/accept", authMiddleware.authorization, followController.accept);
 router.post("/follow-requests/:fromUserId/reject", authMiddleware.authorization, followController.reject);
+router.get("/users/:userId/friends", authMiddleware.authorization, followController.getFriends);
 
 router.post("/media/upload", authMiddleware.authorization, upload.single("image"), mediaController.upload);
 router.delete("/media/:fileId", authMiddleware.authorization, mediaController.remove);

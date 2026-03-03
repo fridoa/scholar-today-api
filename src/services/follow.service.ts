@@ -121,6 +121,23 @@ const followService = {
   async reject(fromUserId: number, toUserId: number): Promise<void> {
     await FollowModel.deleteOne({ followerId: fromUserId, followingId: toUserId, status: "pending" });
   },
+
+  async getFriends(userId: number): Promise<number[]> {
+    const following = await FollowModel.find({ followerId: userId, status: "accepted" }).select("followingId").lean();
+
+    const followingIds = following.map((f) => f.followingId);
+    if (followingIds.length === 0) return [];
+
+    const mutuals = await FollowModel.find({
+      followerId: { $in: followingIds },
+      followingId: userId,
+      status: "accepted",
+    })
+      .select("followerId")
+      .lean();
+
+    return mutuals.map((m) => m.followerId);
+  },
 };
 
 export default followService;
