@@ -41,9 +41,6 @@ router.put("/users/:userId/notifications/read-all", authMiddleware.authorization
 router.post("/users/follow/batch", authMiddleware.authorization, followController.getBatch);
 router.post("/users/:id/follow", authMiddleware.authorization, followController.toggle);
 router.get("/users/:id/follow", authMiddleware.authorization, followController.getInfo);
-router.get("/users/:userId/follow-requests", authMiddleware.authorization, followController.getPendingRequests);
-router.post("/follow-requests/:fromUserId/accept", authMiddleware.authorization, followController.accept);
-router.post("/follow-requests/:fromUserId/reject", authMiddleware.authorization, followController.reject);
 router.get("/users/:userId/friends", authMiddleware.authorization, followController.getFriends);
 
 router.post("/media/upload", authMiddleware.authorization, upload.single("image"), mediaController.upload);
