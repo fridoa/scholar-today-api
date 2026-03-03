@@ -108,4 +108,28 @@ export default {
       res.status(500).json({ message: err.message, data: null });
     }
   },
+
+  async getFollowers(req: IAuthRequest, res: Response) {
+    /*
+        #swagger.summary = 'Get Followers for a User'
+        #swagger.tags = ['Follows']
+    */
+    try {
+      const userId = parseInt(req.params.userId as string);
+
+      if (!userId) {
+        return res.status(400).json({ message: "userId is required", data: null });
+      }
+
+      const followerIds = await followService.getFollowers(userId);
+
+      res.status(200).json({
+        message: "Followers retrieved",
+        data: followerIds,
+      });
+    } catch (error) {
+      const err = error as Error;
+      res.status(500).json({ message: err.message, data: null });
+    }
+  },
 };

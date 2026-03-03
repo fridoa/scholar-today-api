@@ -96,6 +96,11 @@ const followService = {
     return result;
   },
 
+  async getFollowers(userId: number): Promise<number[]> {
+    const followers = await FollowModel.find({ followingId: userId }).select("followerId").lean();
+    return followers.map((f) => f.followerId);
+  },
+
   async getFriends(userId: number): Promise<number[]> {
     const following = await FollowModel.find({ followerId: userId }).select("followingId").lean();
 
