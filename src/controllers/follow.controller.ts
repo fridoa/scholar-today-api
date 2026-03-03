@@ -23,9 +23,77 @@ export default {
       const result = await followService.toggle(followerId, followingId);
 
       res.status(200).json({
-        message: result.followed ? "User followed" : "User unfollowed",
+        message: result.isPending ? "Follow request sent" : "User unfollowed",
         data: result,
       });
+    } catch (error) {
+      const err = error as Error;
+      res.status(500).json({ message: err.message, data: null });
+    }
+  },
+
+  async getPendingRequests(req: IAuthRequest, res: Response) {
+    /*
+        #swagger.summary = 'Get Pending Follow Requests for a User'
+        #swagger.tags = ['Follows']
+    */
+    try {
+      const userId = parseInt(req.params.userId as string);
+
+      if (!userId) {
+        return res.status(400).json({ message: "userId is required", data: null });
+      }
+
+      const requests = await followService.getPendingRequests(userId);
+
+      res.status(200).json({
+        message: "Pending follow requests retrieved",
+        data: requests,
+      });
+    } catch (error) {
+      const err = error as Error;
+      res.status(500).json({ message: err.message, data: null });
+    }
+  },
+
+  async accept(req: IAuthRequest, res: Response) {
+    /*
+        #swagger.summary = 'Accept a Follow Request'
+        #swagger.tags = ['Follows']
+    */
+    try {
+      const fromUserId = parseInt(req.params.fromUserId as string);
+      const toUserId = req.body.userId as number;
+
+      if (!fromUserId || !toUserId) {
+        return res.status(400).json({ message: "fromUserId param and userId body are required", data: null });
+      }
+
+      await followService.accept(fromUserId, toUserId);
+
+      res.status(200).json({ message: "Follow request accepted", data: null });
+    } catch (error) {
+      const err = error as Error;
+      res.status(500).json({ message: err.message, data: null });
+    }
+  },
+
+  async reject(req: IAuthRequest, res: Response) {
+    /*
+        #swagger.summary = 'Reject a Follow Request'
+        #swagger.tags = ['Follows']
+    */
+    try {
+      const fromUserId = parseInt(req.params.fromUserId as string);
+      const toUserId = req.body.userId as number;
+
+      if (!fromUserId || !toUserId) {
+        return res.status(400).json({ message: "fromUserId param and userId body are required", data: null });
+      }
+
+      await followService.reject(fromUserId, toUserId);
+
+      res.status(200).json({ message: "Follow request rejected", data: null });
     } catch (error) {
       const err = error as Error;
       res.status(500).json({ message: err.message, data: null });

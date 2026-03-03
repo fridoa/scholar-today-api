@@ -3,10 +3,18 @@ import NotificationModel from "../models/notification.model";
 
 export interface IFollowInfo {
   followed: boolean;
+  isPending: boolean;
   followsYou: boolean;
   followersCount: number;
   followingCount: number;
 }
+
+export interface IFollowRequest {
+  fromUserId: number;
+  createdAt: Date;
+}
+
+const acceptedFilter = { status: { $ne: "pending" } };
 
 const followService = {
   async toggle(followerId: number, followingId: number) {
@@ -14,52 +22,50 @@ const followService = {
 
     if (existing) {
       await FollowModel.deleteOne({ followerId, followingId });
-      return { followed: false };
+      return { followed: false, isPending: false };
     }
 
-    await FollowModel.create({ followerId, followingId });
+    await FollowModel.create({ followerId, followingId, status: "pending" });
 
     NotificationModel.create({
       userId: followingId,
       fromUserId: followerId,
       type: "follow",
-      message: "started following you",
+      message: "sent you a follow request",
     }).catch(() => {});
 
-    return { followed: true };
+    return { followed: false, isPending: true };
   },
 
-  /** Merged: status + counts in one query */
   async getInfo(followerId: number, followingId: number): Promise<IFollowInfo> {
     const isSelf = followerId === followingId;
 
-    const [exists, reverse, followersCount, followingCount] = await Promise.all([
-      isSelf ? null : FollowModel.exists({ followerId, followingId }),
-      isSelf ? null : FollowModel.exists({ followerId: followingId, followingId: followerId }),
-      FollowModel.countDocuments({ followingId }),
-      FollowModel.countDocuments({ followerId: followingId }),
+    const [followDoc, reverse, followersCount, followingCount] = await Promise.all([
+      isSelf ? null : FollowModel.findOne({ followerId, followingId }).select("status").lean(),
+      isSelf ? null : FollowModel.exists({ followerId: followingId, followingId: followerId, ...acceptedFilter }),
+      FollowModel.countDocuments({ followingId, ...acceptedFilter }),
+      FollowModel.countDocuments({ followerId: followingId, ...acceptedFilter }),
     ]);
 
     return {
-      followed: !!exists,
+      followed: followDoc != null && followDoc.status !== "pending",
+      isPending: followDoc?.status === "pending",
       followsYou: !!reverse,
       followersCount,
       followingCount,
     };
   },
 
-  /** Batch: get info for multiple users at once */
   async getBatch(userIds: number[], currentUserId: number): Promise<Record<number, IFollowInfo>> {
-    // Get all follow relationships involving current user and target users
     const [followsByMe, followsMe, countResults] = await Promise.all([
       FollowModel.find({ followerId: currentUserId, followingId: { $in: userIds } })
-        .select("followingId")
+        .select("followingId status")
         .lean(),
-      FollowModel.find({ followerId: { $in: userIds }, followingId: currentUserId })
+      FollowModel.find({ followerId: { $in: userIds }, followingId: currentUserId, ...acceptedFilter })
         .select("followerId")
         .lean(),
       FollowModel.aggregate([
-        { $match: { $or: [{ followingId: { $in: userIds } }, { followerId: { $in: userIds } }] } },
+        { $match: { ...acceptedFilter, $or: [{ followingId: { $in: userIds } }, { followerId: { $in: userIds } }] } },
         {
           $facet: {
             followers: [{ $match: { followingId: { $in: userIds } } }, { $group: { _id: "$followingId", count: { $sum: 1 } } }],
@@ -69,7 +75,8 @@ const followService = {
       ]),
     ]);
 
-    const followedSet = new Set(followsByMe.map((f) => f.followingId));
+    const followedSet = new Set(followsByMe.filter((f) => f.status !== "pending").map((f) => f.followingId));
+    const pendingSet = new Set(followsByMe.filter((f) => f.status === "pending").map((f) => f.followingId));
     const followsYouSet = new Set(followsMe.map((f) => f.followerId));
 
     const followersMap = new Map<number, number>();
@@ -84,6 +91,7 @@ const followService = {
     for (const id of userIds) {
       result[id] = {
         followed: followedSet.has(id),
+        isPending: pendingSet.has(id),
         followsYou: followsYouSet.has(id),
         followersCount: followersMap.get(id) ?? 0,
         followingCount: followingMap.get(id) ?? 0,
@@ -91,6 +99,27 @@ const followService = {
     }
 
     return result;
+  },
+
+  async getPendingRequests(userId: number): Promise<IFollowRequest[]> {
+    const requests = await FollowModel.find({ followingId: userId, status: "pending" }).select("followerId createdAt").sort({ createdAt: -1 }).lean();
+
+    return requests.map((r) => ({ fromUserId: r.followerId, createdAt: r.createdAt! }));
+  },
+
+  async accept(fromUserId: number, toUserId: number): Promise<void> {
+    await FollowModel.findOneAndUpdate({ followerId: fromUserId, followingId: toUserId, status: "pending" }, { status: "accepted" });
+
+    NotificationModel.create({
+      userId: fromUserId,
+      fromUserId: toUserId,
+      type: "follow",
+      message: "accepted your follow request",
+    }).catch(() => {});
+  },
+
+  async reject(fromUserId: number, toUserId: number): Promise<void> {
+    await FollowModel.deleteOne({ followerId: fromUserId, followingId: toUserId, status: "pending" });
   },
 };
 
