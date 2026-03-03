@@ -15,6 +15,7 @@ const followService = {
 
     if (existing) {
       await FollowModel.deleteOne({ followerId, followingId });
+      NotificationModel.deleteOne({ userId: followingId, fromUserId: followerId, type: "follow" }).catch(() => {});
       return { followed: false };
     }
 
