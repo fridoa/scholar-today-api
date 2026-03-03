@@ -94,7 +94,7 @@ const followService = {
     }
 
     return result;
-  },
+  }, 
 
   async getFollowers(userId: number): Promise<number[]> {
     const followers = await FollowModel.find({ followingId: userId }).select("followerId").lean();
