@@ -123,7 +123,9 @@ const followService = {
   },
 
   async getFriends(userId: number): Promise<number[]> {
-    const following = await FollowModel.find({ followerId: userId, status: "accepted" }).select("followingId").lean();
+    const following = await FollowModel.find({ followerId: userId, ...acceptedFilter })
+      .select("followingId")
+      .lean();
 
     const followingIds = following.map((f) => f.followingId);
     if (followingIds.length === 0) return [];
@@ -131,7 +133,7 @@ const followService = {
     const mutuals = await FollowModel.find({
       followerId: { $in: followingIds },
       followingId: userId,
-      status: "accepted",
+      ...acceptedFilter,
     })
       .select("followerId")
       .lean();
