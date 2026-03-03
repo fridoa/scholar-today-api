@@ -2,6 +2,10 @@
 
 Backend API untuk aplikasi Scholar Today — sistem autentikasi dengan proxy ke JSONPlaceholder API.
 
+> 🌐 **Base URL (Production):** [https://scholar-today-api.vercel.app/api/v1](https://scholar-today-api.vercel.app/api/v1)
+>
+> 📖 **Dokumentasi API:** [https://scholar-today-api.vercel.app/api-docs](https://scholar-today-api.vercel.app/api-docs)
+
 ## Tech Stack
 
 - **Runtime**: Node.js + TypeScript
